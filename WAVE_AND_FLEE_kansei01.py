@@ -921,14 +921,14 @@ class App:
 
         panel_x_offset = int(ease * 250)
         self._panel(43 + panel_x_offset, 70, 170, 36, 0, 5, 12)
-        self._jtext_center(75, "戦術シミュレーション", 6)
+        self._jtext_center(75, "戦闘サバイバルゲーム", 6)
         
         if t % 60 < 42:
             if self.is_mobile:
                 self._jtext(WIDTH // 2 - self._text_width("＞ 画面を押して開始 ＜") // 2, 90, "＞ 画面を押して開始 ＜", 10)
             else:
                 self._jtext(WIDTH // 2 - self._text_width("＞ スペース/Aキーで開始 ＜") // 2, 90, "＞ スペース/Aキーで開始 ＜", 10)
-        self._jtext(WIDTH // 2 - self._text_width("自動操縦：C/CTRLキー") // 2, 117, "自動操縦：C/CTRLキー", 7)
+        self._jtext(WIDTH // 2 - self._text_width("制作著作 T.K/M.T") // 2, 117, "制作著作 T.K/M.T", 7)
         self._jtext(WIDTH // 2 - self._text_width("Mirai Work Co., Ltd. 2026") // 2, 132, "Mirai Work Co., Ltd. 2026", 11)
 
     def draw_mission(self):
@@ -1842,3 +1842,4 @@ class App:
             self._jtext(WIDTH - 36, 8, "自動", auto_fg)
 
 App()
+
