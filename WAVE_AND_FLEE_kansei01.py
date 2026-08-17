@@ -433,9 +433,78 @@ class App:
                     else:
                         self.cheat_index = 1 if key == self.cheat_sequence[0] else 0
 
+            # 15秒（900フレーム）放置でデモ画面（ATTRACT_DEMO）へ移行
+            if self.state_timer >= 900:
+                self.state = "ATTRACT_DEMO"
+                self.state_timer = 0
+                self.wave = 1
+                self.ai_mode = True
+                self.invincible = False
+                self.init_wave()
+                return
+
             if pyxel.btnp(pyxel.KEY_A) or pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(self.BTN_ACT_A) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_X) or (self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT)):
                 pyxel.play(3, 7) 
                 self.state = "MISSION"
+
+        elif self.state == "ATTRACT_DEMO":
+            # ユーザー入力があったらタイトルへ戻る
+            any_input = (
+                pyxel.btnp(pyxel.KEY_A) or pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(pyxel.KEY_C) or
+                pyxel.btnp(pyxel.KEY_UP) or pyxel.btnp(pyxel.KEY_DOWN) or pyxel.btnp(pyxel.KEY_LEFT) or pyxel.btnp(pyxel.KEY_RIGHT) or
+                pyxel.btnp(self.BTN_ACT_A) or pyxel.btnp(self.BTN_ACT_C) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_X) or
+                (self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT))
+            )
+            if any_input:
+                self.state = "TITLE"
+                self.state_timer = 0
+                self.ai_mode = False
+                self.invincible = False
+                pyxel.playm(0, loop=True)
+                return
+
+            # デモプレイ：40秒（2400フレーム）。1〜4面を交互に繰り返す（各面10秒 = 600フレーム）
+            target_wave = (self.state_timer // 600) % 4 + 1
+            if self.wave != target_wave:
+                self.wave = target_wave
+                self.init_wave()
+                self.ai_mode =True 
+                self.invincible = False
+
+            if self.hp < 30:
+                self.hp = 100
+
+            self.update_play()
+
+            # 40秒経過したらチュートリアル（ATTRACT_TUTORIAL）へ
+            if self.state_timer >= 2400:
+                self.state = "ATTRACT_TUTORIAL"
+                self.state_timer = 0
+
+        elif self.state == "ATTRACT_TUTORIAL":
+            # ユーザー入力があったらタイトルへ戻る
+            any_input = (
+                pyxel.btnp(pyxel.KEY_A) or pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(pyxel.KEY_C) or
+                pyxel.btnp(pyxel.KEY_UP) or pyxel.btnp(pyxel.KEY_DOWN) or pyxel.btnp(pyxel.KEY_LEFT) or pyxel.btnp(pyxel.KEY_RIGHT) or
+                pyxel.btnp(self.BTN_ACT_A) or pyxel.btnp(self.BTN_ACT_C) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_X) or
+                (self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT))
+            )
+            if any_input:
+                self.state = "TITLE"
+                self.state_timer = 0
+                self.ai_mode = False
+                self.invincible = False
+                pyxel.playm(0, loop=True)
+                return
+
+            # チュートリアル：10秒（600フレーム）流れたらデモプレイに戻る（ループ）
+            if self.state_timer >= 600:
+                self.state = "ATTRACT_DEMO"
+                self.state_timer = 0
+                self.wave = 1
+                self.ai_mode = True
+                self.invincible = False
+                self.init_wave()
 
         elif self.state == "MISSION":
             if pyxel.btnp(pyxel.KEY_A) or pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(self.BTN_ACT_A) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_X) or (self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT)):
@@ -759,8 +828,12 @@ class App:
             if p[6] <= 0: self.particles.remove(p)
 
         if self.hp <= 0:
-            self.state = "GAMEOVER"
-            return
+            if self.state == "ATTRACT_DEMO":
+                self.hp = 100
+                self.init_wave()
+            else:
+                self.state = "GAMEOVER"
+                return
             
         if self.state == "PLAY" and len(self.enemies) > 0 and not any(en["alive"] for en in self.enemies):
             if self.wave == self.max_wave and not self.boss_spawned:
@@ -782,11 +855,19 @@ class App:
             else:
                 self.wave += 1
                 if self.wave > self.max_wave:
-                    self.state = "CLEAR"
-                    self.clear_timer = 0
-                    pyxel.play(3, 5) 
+                    if self.state == "ATTRACT_DEMO":
+                        self.wave = 1
+                        self.init_wave()
+                    else:
+                        self.state = "CLEAR"
+                        self.clear_timer = 0
+                        pyxel.play(3, 5) 
                 else:
                     self.init_wave()
+
+        # デモモード中で敵全滅またはウェーブ進行時のケア
+        if self.state == "ATTRACT_DEMO" and len(self.enemies) > 0 and not any(en["alive"] for en in self.enemies):
+            self.init_wave()
 
     def update_boss_death(self):
         self.boss_death_timer += 1
@@ -832,6 +913,12 @@ class App:
         pyxel.camera(cx, cy)
 
         if self.state == "TITLE": self.draw_title()
+        elif self.state == "ATTRACT_DEMO":
+            self.draw_play()
+            self._jtext_center(HEIGHT - 14, "【 デモプレイ 】 (何かキーを押すとタイトルへ)", 10)
+        elif self.state == "ATTRACT_TUTORIAL":
+            self.draw_tutorial()
+            self._jtext_center(HEIGHT - 14, "【 チュートリアル 】 (何かキーを押すとタイトルへ)", 10)
         elif self.state == "MISSION": self.draw_mission()
         elif self.state == "TUTORIAL": self.draw_tutorial()
         elif self.state == "PLAY" or self.state == "BOSS_DEATH" or self.state == "BOSS_SPAWN": self.draw_play()
@@ -1842,4 +1929,3 @@ class App:
             self._jtext(WIDTH - 36, 8, "自動", auto_fg)
 
 App()
-
