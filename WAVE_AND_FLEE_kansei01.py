@@ -192,7 +192,7 @@ class App:
         except ImportError:
             pass
             
-        win_h = HEIGHT + 48 if self.is_mobile else HEIGHT
+        win_h = HEIGHT
         pyxel.init(WIDTH, win_h, title="FPS迷路戦闘・波状戦", fps=60)
         
         try:
@@ -212,7 +212,7 @@ class App:
         self.state = "TITLE"
         self.prev_state = "TITLE"
         self.state_timer = 0
-        self.mobile_wait_release = False
+        self.mobile_wait_release = self.is_mobile
         
         self.max_wave = MAX_WAVES 
         self.wave = 1
@@ -408,8 +408,6 @@ class App:
         if self.prev_state != self.state:
             self.state_timer = 0
             if self.state == "TITLE":
-                if self.is_mobile and pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
-                    self.mobile_wait_release = True
                 pyxel.playm(0, loop=True) 
             elif self.state == "GAMEOVER":
                 pyxel.playm(7, loop=False) 
@@ -428,12 +426,6 @@ class App:
             if pyxel.play_pos(0) is None:
                 pyxel.playm(0, loop=True)
                 
-            if self.is_mobile and self.mobile_wait_release:
-                if not pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
-                    self.mobile_wait_release = False
-                else:
-                    return
-
             for key in [pyxel.KEY_UP, pyxel.KEY_DOWN, pyxel.KEY_LEFT, pyxel.KEY_RIGHT]:
                 if pyxel.btnp(key):
                     if key == self.cheat_sequence[self.cheat_index]:
@@ -454,11 +446,17 @@ class App:
                 self.init_wave()
                 return
 
-            if pyxel.btnp(pyxel.KEY_A) or pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(self.BTN_ACT_A) or pyxel.btnp(self.BTN_START) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_X) or (self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT)):
-                pyxel.play(3, 7) 
-                self.state = "MISSION"
-                if self.is_mobile:
+            if self.is_mobile:
+                if self.mobile_wait_release:
+                    if not pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
+                        self.mobile_wait_release = False
+                elif pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+                    pyxel.play(3, 7)
+                    self.state = "MISSION"
                     self.mobile_wait_release = True
+            elif pyxel.btnp(pyxel.KEY_A) or pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(self.BTN_ACT_A) or pyxel.btnp(self.BTN_START) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_X):
+                pyxel.play(3, 7)
+                self.state = "MISSION"
 
         elif self.state == "ATTRACT_DEMO":
             # ユーザー入力があったらタイトルへ戻る
@@ -480,6 +478,8 @@ class App:
             if any_input:
                 self.state = "TITLE"
                 self.state_timer = 0
+                if self.is_mobile:
+                    self.mobile_wait_release = True
                 self.ai_mode = False
                 self.invincible = False
                 pyxel.playm(0, loop=True)
@@ -514,6 +514,8 @@ class App:
             if any_input:
                 self.state = "TITLE"
                 self.state_timer = 0
+                if self.is_mobile:
+                    self.mobile_wait_release = True
                 self.ai_mode = False
                 self.invincible = False
                 pyxel.playm(0, loop=True)
@@ -553,7 +555,7 @@ class App:
                 
             if self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
                 mx, my = pyxel.mouse_x, pyxel.mouse_y
-                if WIDTH - 65 <= mx <= WIDTH - 5 and HEIGHT + 8 <= my <= HEIGHT + 36:
+                if False:
                     pyxel.play(3, 7)
                     self.ai_mode = not self.ai_mode
                     
@@ -570,15 +572,17 @@ class App:
             if self.state_timer >= gameover_duration:
                 self.state = "TITLE"
                 self.invincible = False
+                if self.is_mobile:
+                    self.mobile_wait_release = True
                 return
 
             mobile_gameover_left = False
             mobile_gameover_right = False
             if self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
                 mx, my = pyxel.mouse_x, pyxel.mouse_y
-                if 5 <= mx <= 65 and HEIGHT <= my <= HEIGHT + 48:
+                if False:
                     mobile_gameover_left = True
-                elif 80 <= mx <= 140 and HEIGHT <= my <= HEIGHT + 48:
+                elif False:
                     mobile_gameover_right = True
 
             if pyxel.btnp(pyxel.KEY_UP) or pyxel.btnp(pyxel.KEY_DOWN) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_UP) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_DOWN) or pyxel.btnp(pyxel.KEY_LEFT) or pyxel.btnp(pyxel.KEY_RIGHT) or mobile_gameover_left or mobile_gameover_right:
@@ -603,6 +607,8 @@ class App:
                     # いいえ（タイトルへ）
                     self.state = "TITLE"
                     self.invincible = False
+                    if self.is_mobile:
+                        self.mobile_wait_release = True
                 
         elif self.state == "CLEAR":
             self.clear_timer += 1
@@ -1454,9 +1460,6 @@ class App:
             pyxel.pset(x, bottom, m["dark"])
 
     def draw_play(self):
-        if self.is_mobile:
-            pyxel.rect(0, HEIGHT, WIDTH, 48, 0)
-
         bob = int(math.sin(self.head_bob) * 3)
         half = (HEIGHT // 2) + bob
         flash = self.flash_timer > 0
@@ -1961,11 +1964,5 @@ class App:
             pyxel.rect(WIDTH - 65, 5, 60, 16, 12)
             pyxel.rectb(WIDTH - 65, 5, 60, 16, 7)
             self._jtext(WIDTH - 59, 8, "自動操縦", 0)
-
-        if getattr(self, "is_mobile", False):
-            if self.ai_mode:
-                pyxel.rect(WIDTH - 65, 5, 60, 16, 12)
-                pyxel.rectb(WIDTH - 65, 5, 60, 16, 7)
-                self._jtext(WIDTH - 59, 8, "自動操縦", 0)
 
 App()
