@@ -448,11 +448,12 @@ class App:
                 self.init_wave()
                 return
 
-            # スマホでは、タイトル画面に入った直後のタッチを無効化
             if self.is_mobile:
                 if self.mobile_wait_release:
-                    if not pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
-                        self.mobile_wait_release = False
+                    if pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
+                        return
+
+                    self.mobile_wait_release = False
                     return
 
                 if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
@@ -460,6 +461,7 @@ class App:
                     self.state = "MISSION"
                     return
 
+                return
             # PC・ゲームパッド
             if (
                 pyxel.btnp(pyxel.KEY_A)
