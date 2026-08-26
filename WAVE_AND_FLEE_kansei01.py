@@ -183,15 +183,6 @@ MAPS = [
 
 class App:
     def __init__(self):
-        pyxel.init(WIDTH, HEIGHT, title="FPS迷路戦闘・波状戦", fps=60)
-        
-        try:
-            self.font = pyxel.Font(FONT_FILE)
-        except Exception:
-            self.font = None
-
-        self.init_sounds()
-        
         self.is_mobile = False
         try:
             import js
@@ -201,11 +192,21 @@ class App:
         except ImportError:
             pass
             
+        win_h = HEIGHT + 48 if self.is_mobile else HEIGHT
+        pyxel.init(WIDTH, win_h, title="FPS迷路戦闘・波状戦", fps=60)
+        
+        try:
+            self.font = pyxel.Font(FONT_FILE)
+        except Exception:
+            self.font = None
+
+        self.init_sounds()
+        
         if self.is_mobile:
             pyxel.mouse(True)
             
         self.BTN_ACT_A = pyxel.GAMEPAD1_BUTTON_Y
-        self.BTN_ACT_C = pyxel.GAMEPAD1_BUTTON_A
+        self.BTN_ACT_C = pyxel.GAMEPAD1_BUTTON_BACK
 
         self.state = "TITLE"
         self.prev_state = "TITLE"
@@ -528,7 +529,8 @@ class App:
                 
             if self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
                 mx, my = pyxel.mouse_x, pyxel.mouse_y
-                if WIDTH - 45 <= mx <= WIDTH - 5 and 5 <= my <= 20:
+                if WIDTH - 35 <= mx <= WIDTH - 5 and 152 <= my <= 184:
+                    pyxel.play(3, 7)
                     self.ai_mode = not self.ai_mode
                     
             self.update_play()
@@ -635,12 +637,12 @@ class App:
                 
             if self.is_mobile and pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
                 mx, my = pyxel.mouse_x, pyxel.mouse_y
-                if 20 <= mx <= 50 and HEIGHT - 70 <= my <= HEIGHT - 40: move_forward = True
-                if 20 <= mx <= 50 and HEIGHT - 30 <= my <= HEIGHT: move_backward = True
-                if 0 <= mx <= 30 and HEIGHT - 50 <= my <= HEIGHT - 20: turn_left = True
-                if 40 <= mx <= 70 and HEIGHT - 50 <= my <= HEIGHT - 20: turn_right = True
-                if math.hypot(mx - (WIDTH - 30), my - (HEIGHT - 35)) <= 30:
-                    shoot_trigger = True
+                if my >= HEIGHT:
+                    if 10 <= mx <= 40 and 152 <= my <= 184: turn_left = True
+                    if 80 <= mx <= 110 and 152 <= my <= 184: turn_right = True
+                    if 45 <= mx <= 75 and 148 <= my <= 164: move_forward = True
+                    if 45 <= mx <= 75 and 170 <= my <= 186: move_backward = True
+                    if WIDTH - 70 <= mx <= WIDTH - 40 and 152 <= my <= 184: shoot_trigger = True
 
         if turn_left: self.pa -= ROT_SPEED
         if turn_right: self.pa += ROT_SPEED
@@ -927,6 +929,9 @@ class App:
 
         pyxel.camera(0, 0)
 
+        if self.is_mobile:
+            self.draw_mobile_controls()
+
     def _text_width(self, s):
         if hasattr(self, "font") and self.font:
             return self.font.text_width(str(s))
@@ -1051,7 +1056,7 @@ class App:
         self._jtext(32 + p_offset, 34, "上・下キー：移動", 7)
         self._jtext(32 + p_offset, 48, "左右キー：方向転換", 7)
         self._jtext(32 + p_offset, 62, "スペース/Aキー：射撃", 7)
-        self._jtext(32 + p_offset, 76, "C/CTRLキー：自動操縦切替", 7)
+        self._jtext(32 + p_offset, 76, "セレクト/CTRLキー：自動操縦切替", 7)
         
         self._jtext(44 + p_offset, 92, "ポーション：近づくと体力25回復", 11)
         ix = 32 + p_offset
@@ -1283,6 +1288,39 @@ class App:
                             
             if progress > 0.85:
                 pyxel.cls(0)
+
+    def draw_mobile_controls(self):
+        if not self.is_mobile:
+            return
+        pyxel.rect(0, HEIGHT, WIDTH, 48, 0)
+        pyxel.line(0, HEIGHT, WIDTH, HEIGHT, 5)
+
+        # 左側：方向キー・移動ボタン
+        pyxel.rect(10, 152, 30, 32, 1)
+        pyxel.rectb(10, 152, 30, 32, 6)
+        self._jtext(18, 163, "◀", 7)
+
+        pyxel.rect(45, 148, 30, 16, 1)
+        pyxel.rectb(45, 148, 30, 16, 6)
+        self._jtext(56, 153, "▲", 7)
+
+        pyxel.rect(45, 170, 30, 16, 1)
+        pyxel.rectb(45, 170, 30, 16, 6)
+        self._jtext(56, 175, "▼", 7)
+
+        pyxel.rect(80, 152, 30, 32, 1)
+        pyxel.rectb(80, 152, 30, 32, 6)
+        self._jtext(88, 163, "▶", 7)
+
+        # 右側：ショット & オート
+        pyxel.rect(WIDTH - 70, 152, 30, 32, 8)
+        pyxel.rectb(WIDTH - 70, 152, 30, 32, 7)
+        self._jtext(WIDTH - 61, 163, "SHOT", 7)
+
+        auto_col = 11 if self.ai_mode else 5
+        pyxel.rect(WIDTH - 35, 152, 30, 32, auto_col)
+        pyxel.rectb(WIDTH - 35, 152, 30, 32, 7)
+        self._jtext(WIDTH - 30, 163, "AUTO", 7)
 
     def draw_intro_graphic(self, index, x, y):
         if index == 0:  # プレイヤー
