@@ -210,6 +210,9 @@ class App:
         self.BTN_START = pyxel.GAMEPAD1_BUTTON_START
 
         self.state = "TITLE"
+        self.prev_state = None
+        self.state_timer = 0
+        self.mobile_wait_release = self.is_mobile
         self.prev_state = "TITLE"
         self.state_timer = 0
         self.mobile_wait_release = self.is_mobile
@@ -449,6 +452,10 @@ class App:
                 return
 
             if self.is_mobile:
+                # 起動時・タイトル表示直後の誤タップ判定を無視するガード処理（20フレーム = 約0.3秒）
+                if self.state_timer < 20:
+                    return
+
                 if self.mobile_wait_release:
                     if pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
                         return
