@@ -409,6 +409,8 @@ class App:
             self.state_timer = 0
             if self.state == "TITLE":
                 pyxel.playm(0, loop=True) 
+                if self.is_mobile:
+                    self.mobile_wait_release = True
             elif self.state == "GAMEOVER":
                 pyxel.playm(7, loop=False) 
                 self.gameover_choice = 0
@@ -446,16 +448,11 @@ class App:
                 self.init_wave()
                 return
 
-            if self.is_mobile:
-                if self.mobile_wait_release:
-                    if not pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
-                        self.mobile_wait_release = False
-                elif pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
-                    pyxel.play(3, 7)
-                    self.state = "MISSION"
-                    self.mobile_wait_release = True
-            elif pyxel.btnp(pyxel.KEY_A) or pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(self.BTN_ACT_A) or pyxel.btnp(self.BTN_START) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_X):
-                pyxel.play(3, 7)
+            if self.is_mobile and self.mobile_wait_release:
+                if not pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
+                    self.mobile_wait_release = False
+            elif pyxel.btnp(pyxel.KEY_A) or pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(self.BTN_ACT_A) or pyxel.btnp(self.BTN_START) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_X) or (self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT)):
+                pyxel.play(3, 7) 
                 self.state = "MISSION"
 
         elif self.state == "ATTRACT_DEMO":
@@ -478,8 +475,6 @@ class App:
             if any_input:
                 self.state = "TITLE"
                 self.state_timer = 0
-                if self.is_mobile:
-                    self.mobile_wait_release = True
                 self.ai_mode = False
                 self.invincible = False
                 pyxel.playm(0, loop=True)
@@ -514,8 +509,6 @@ class App:
             if any_input:
                 self.state = "TITLE"
                 self.state_timer = 0
-                if self.is_mobile:
-                    self.mobile_wait_release = True
                 self.ai_mode = False
                 self.invincible = False
                 pyxel.playm(0, loop=True)
@@ -553,12 +546,6 @@ class App:
                 pyxel.play(3, 7) 
                 self.ai_mode = not self.ai_mode
                 
-            if self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
-                mx, my = pyxel.mouse_x, pyxel.mouse_y
-                if False:
-                    pyxel.play(3, 7)
-                    self.ai_mode = not self.ai_mode
-                    
             self.update_play()
             
             if self.state == "BOSS_SPAWN":
@@ -572,20 +559,9 @@ class App:
             if self.state_timer >= gameover_duration:
                 self.state = "TITLE"
                 self.invincible = False
-                if self.is_mobile:
-                    self.mobile_wait_release = True
                 return
 
-            mobile_gameover_left = False
-            mobile_gameover_right = False
-            if self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
-                mx, my = pyxel.mouse_x, pyxel.mouse_y
-                if False:
-                    mobile_gameover_left = True
-                elif False:
-                    mobile_gameover_right = True
-
-            if pyxel.btnp(pyxel.KEY_UP) or pyxel.btnp(pyxel.KEY_DOWN) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_UP) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_DOWN) or pyxel.btnp(pyxel.KEY_LEFT) or pyxel.btnp(pyxel.KEY_RIGHT) or mobile_gameover_left or mobile_gameover_right:
+            if pyxel.btnp(pyxel.KEY_UP) or pyxel.btnp(pyxel.KEY_DOWN) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_UP) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_DOWN) or pyxel.btnp(pyxel.KEY_LEFT) or pyxel.btnp(pyxel.KEY_RIGHT):
                 pyxel.play(3, 7)
                 self.gameover_choice = 1 - self.gameover_choice
 
@@ -607,8 +583,6 @@ class App:
                     # いいえ（タイトルへ）
                     self.state = "TITLE"
                     self.invincible = False
-                    if self.is_mobile:
-                        self.mobile_wait_release = True
                 
         elif self.state == "CLEAR":
             self.clear_timer += 1
@@ -1317,39 +1291,6 @@ class App:
                             
             if progress > 0.85:
                 pyxel.cls(0)
-
-    def draw_mobile_controls(self):
-        if not self.is_mobile:
-            return
-        pyxel.rect(0, HEIGHT, WIDTH, 48, 0)
-        pyxel.line(0, HEIGHT, WIDTH, HEIGHT, 5)
-
-        # 左側：方向キー・移動ボタン
-        pyxel.rect(10, 152, 30, 32, 1)
-        pyxel.rectb(10, 152, 30, 32, 6)
-        self._jtext(18, 163, "◀", 7)
-
-        pyxel.rect(45, 148, 30, 16, 1)
-        pyxel.rectb(45, 148, 30, 16, 6)
-        self._jtext(56, 153, "▲", 7)
-
-        pyxel.rect(45, 170, 30, 16, 1)
-        pyxel.rectb(45, 170, 30, 16, 6)
-        self._jtext(56, 175, "▼", 7)
-
-        pyxel.rect(80, 152, 30, 32, 1)
-        pyxel.rectb(80, 152, 30, 32, 6)
-        self._jtext(88, 163, "▶", 7)
-
-        # 右側：ショット & オート
-        pyxel.rect(WIDTH - 70, 152, 30, 32, 8)
-        pyxel.rectb(WIDTH - 70, 152, 30, 32, 7)
-        self._jtext(WIDTH - 61, 163, "SHOT", 7)
-
-        auto_col = 11 if self.ai_mode else 5
-        pyxel.rect(WIDTH - 35, 152, 30, 32, auto_col)
-        pyxel.rectb(WIDTH - 35, 152, 30, 32, 7)
-        self._jtext(WIDTH - 30, 163, "AUTO", 7)
 
     def draw_intro_graphic(self, index, x, y):
         if index == 0:  # プレイヤー
