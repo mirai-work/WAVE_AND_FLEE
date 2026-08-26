@@ -408,6 +408,8 @@ class App:
         if self.prev_state != self.state:
             self.state_timer = 0
             if self.state == "TITLE":
+                if self.is_mobile and pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
+                    self.mobile_wait_release = True
                 pyxel.playm(0, loop=True) 
             elif self.state == "GAMEOVER":
                 pyxel.playm(7, loop=False) 
@@ -426,6 +428,12 @@ class App:
             if pyxel.play_pos(0) is None:
                 pyxel.playm(0, loop=True)
                 
+            if self.is_mobile and self.mobile_wait_release:
+                if not pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
+                    self.mobile_wait_release = False
+                else:
+                    return
+
             for key in [pyxel.KEY_UP, pyxel.KEY_DOWN, pyxel.KEY_LEFT, pyxel.KEY_RIGHT]:
                 if pyxel.btnp(key):
                     if key == self.cheat_sequence[self.cheat_index]:
@@ -1446,6 +1454,9 @@ class App:
             pyxel.pset(x, bottom, m["dark"])
 
     def draw_play(self):
+        if self.is_mobile:
+            pyxel.rect(0, HEIGHT, WIDTH, 48, 0)
+
         bob = int(math.sin(self.head_bob) * 3)
         half = (HEIGHT // 2) + bob
         flash = self.flash_timer > 0
@@ -1953,8 +1964,8 @@ class App:
 
         if getattr(self, "is_mobile", False):
             if self.ai_mode:
-                pyxel.rect(WIDTH - 65, HEIGHT + 8, 60, 28, 12)
-                pyxel.rectb(WIDTH - 65, HEIGHT + 8, 60, 28, 7)
-                self._jtext(WIDTH - 59, HEIGHT + 17, "自動操縦", 0)
+                pyxel.rect(WIDTH - 65, 5, 60, 16, 12)
+                pyxel.rectb(WIDTH - 65, 5, 60, 16, 7)
+                self._jtext(WIDTH - 59, 8, "自動操縦", 0)
 
 App()
