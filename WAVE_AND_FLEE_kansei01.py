@@ -934,10 +934,10 @@ class App:
         if self.state == "TITLE": self.draw_title()
         elif self.state == "ATTRACT_DEMO":
             self.draw_play()
-            self._jtext_center(HEIGHT - 14, "【 デモプレイ 】 (何かキーを押すとタイトルへ)", 10)
+            self._jtext_center(HEIGHT - 14, "【デモ画面】(スペース/A/スタートでタイトルへ)", 10)
         elif self.state == "ATTRACT_TUTORIAL":
             self.draw_tutorial()
-            self._jtext_center(HEIGHT - 14, "【 チュートリアル 】 (何かキーを押すとタイトルへ)", 10)
+            self._jtext_center(HEIGHT - 14, "【操作方法】(スペース/A/スタートでタイトルへ)", 10)
         elif self.state == "MISSION": self.draw_mission()
         elif self.state == "TUTORIAL": self.draw_tutorial()
         elif self.state == "PLAY" or self.state == "BOSS_DEATH" or self.state == "BOSS_SPAWN": self.draw_play()
@@ -1949,12 +1949,12 @@ class App:
         if not getattr(self, "is_mobile", False) and self.ai_mode:
             pyxel.rect(WIDTH - 65, 5, 60, 16, 12)
             pyxel.rectb(WIDTH - 65, 5, 60, 16, 7)
-            self._jtext(WIDTH - 59, 8, "自動操作", 0)
+            self._jtext(WIDTH - 59, 8, "自動操縦", 0)
 
         if getattr(self, "is_mobile", False):
             if self.ai_mode:
                 pyxel.rect(WIDTH - 65, HEIGHT + 8, 60, 28, 12)
                 pyxel.rectb(WIDTH - 65, HEIGHT + 8, 60, 28, 7)
-                self._jtext(WIDTH - 59, HEIGHT + 17, "自動操作", 0)
+                self._jtext(WIDTH - 59, HEIGHT + 17, "自動操縦", 0)
 
 App()
