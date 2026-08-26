@@ -427,7 +427,7 @@ class App:
         if self.state == "TITLE":
             if pyxel.play_pos(0) is None:
                 pyxel.playm(0, loop=True)
-                
+
             for key in [pyxel.KEY_UP, pyxel.KEY_DOWN, pyxel.KEY_LEFT, pyxel.KEY_RIGHT]:
                 if pyxel.btnp(key):
                     if key == self.cheat_sequence[self.cheat_index]:
@@ -448,11 +448,27 @@ class App:
                 self.init_wave()
                 return
 
-            if self.is_mobile and self.mobile_wait_release:
-                if not pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
-                    self.mobile_wait_release = False
-            elif pyxel.btnp(pyxel.KEY_A) or pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(self.BTN_ACT_A) or pyxel.btnp(self.BTN_START) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_X) or (self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT)):
-                pyxel.play(3, 7) 
+            # スマホでは、タイトル画面に入った直後のタッチを無効化
+            if self.is_mobile:
+                if self.mobile_wait_release:
+                    if not pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
+                        self.mobile_wait_release = False
+                    return
+
+                if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+                    pyxel.play(3, 7)
+                    self.state = "MISSION"
+                    return
+
+            # PC・ゲームパッド
+            if (
+                pyxel.btnp(pyxel.KEY_A)
+                or pyxel.btnp(pyxel.KEY_SPACE)
+                or pyxel.btnp(self.BTN_ACT_A)
+                or pyxel.btnp(self.BTN_START)
+                or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_X)
+            ):
+                pyxel.play(3, 7)
                 self.state = "MISSION"
 
         elif self.state == "ATTRACT_DEMO":
@@ -1901,9 +1917,10 @@ class App:
                            my_y + int(math.sin(ang) * ln),
                            random.choice([10, 9]))
 
-        if not getattr(self, "is_mobile", False) and self.ai_mode:
-            pyxel.rect(WIDTH - 65, 5, 60, 16, 12)
-            pyxel.rectb(WIDTH - 65, 5, 60, 16, 7)
-            self._jtext(WIDTH - 59, 8, "自動操縦", 0)
+        if self.ai_mode:
+            pyxel.rect(115, 5, 60, 16, 12)
+            pyxel.rectb(115, 5, 60, 16, 7)
+            self._jtext(121, 8, "自動操縦", 0)
 
 App()
+
