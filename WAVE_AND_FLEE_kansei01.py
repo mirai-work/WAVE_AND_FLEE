@@ -207,6 +207,7 @@ class App:
             
         self.BTN_ACT_A = pyxel.GAMEPAD1_BUTTON_Y
         self.BTN_ACT_C = pyxel.GAMEPAD1_BUTTON_BACK
+        self.BTN_START = pyxel.GAMEPAD1_BUTTON_START
 
         self.state = "TITLE"
         self.prev_state = "TITLE"
@@ -445,7 +446,7 @@ class App:
                 self.init_wave()
                 return
 
-            if pyxel.btnp(pyxel.KEY_A) or pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(self.BTN_ACT_A) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_X) or (self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT)):
+            if pyxel.btnp(pyxel.KEY_A) or pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(self.BTN_ACT_A) or pyxel.btnp(self.BTN_START) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_X) or (self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT)):
                 pyxel.play(3, 7) 
                 self.state = "MISSION"
                 if self.is_mobile:
@@ -456,7 +457,16 @@ class App:
             any_input = (
                 pyxel.btnp(pyxel.KEY_A) or pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(pyxel.KEY_C) or
                 pyxel.btnp(pyxel.KEY_UP) or pyxel.btnp(pyxel.KEY_DOWN) or pyxel.btnp(pyxel.KEY_LEFT) or pyxel.btnp(pyxel.KEY_RIGHT) or
-                pyxel.btnp(self.BTN_ACT_A) or pyxel.btnp(self.BTN_ACT_C) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_X) or
+                pyxel.btnp(pyxel.GAMEPAD1_BUTTON_START) or
+                pyxel.btnp(self.BTN_ACT_A) or pyxel.btnp(self.BTN_ACT_C) or
+                pyxel.btnp(pyxel.GAMEPAD1_BUTTON_X) or
+                pyxel.btnp(pyxel.GAMEPAD1_BUTTON_A) or
+                pyxel.btnp(pyxel.GAMEPAD1_BUTTON_B) or
+                pyxel.btnp(pyxel.GAMEPAD1_BUTTON_Y) or
+                pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_UP) or
+                pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_DOWN) or
+                pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_LEFT) or
+                pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_RIGHT) or
                 (self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT))
             )
             if any_input:
@@ -514,12 +524,12 @@ class App:
             if self.is_mobile and self.mobile_wait_release:
                 if not pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
                     self.mobile_wait_release = False
-            elif pyxel.btnp(pyxel.KEY_A) or pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(self.BTN_ACT_A) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_X) or (self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT)):
+            elif pyxel.btnp(pyxel.KEY_A) or pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(self.BTN_ACT_A) or pyxel.btnp(self.BTN_START) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_X) or (self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT)):
                 pyxel.play(3, 7) 
                 self.state = "TUTORIAL"
 
         elif self.state == "TUTORIAL":
-            if pyxel.btnp(pyxel.KEY_A) or pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(self.BTN_ACT_A) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_X) or (self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT)):
+            if pyxel.btnp(pyxel.KEY_A) or pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(self.BTN_ACT_A) or pyxel.btnp(self.BTN_START) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_X) or (self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT)):
                 pyxel.play(3, 7) 
                 self.state = "PLAY"
                 self.wave = 1
@@ -535,7 +545,7 @@ class App:
                 
             if self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
                 mx, my = pyxel.mouse_x, pyxel.mouse_y
-                if WIDTH - 35 <= mx <= WIDTH - 5 and 152 <= my <= 184:
+                if WIDTH - 65 <= mx <= WIDTH - 5 and HEIGHT + 8 <= my <= HEIGHT + 36:
                     pyxel.play(3, 7)
                     self.ai_mode = not self.ai_mode
                     
@@ -554,11 +564,20 @@ class App:
                 self.invincible = False
                 return
 
-            if pyxel.btnp(pyxel.KEY_UP) or pyxel.btnp(pyxel.KEY_DOWN) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_UP) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_DOWN) or pyxel.btnp(pyxel.KEY_LEFT) or pyxel.btnp(pyxel.KEY_RIGHT):
+            mobile_gameover_left = False
+            mobile_gameover_right = False
+            if self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+                mx, my = pyxel.mouse_x, pyxel.mouse_y
+                if 5 <= mx <= 65 and HEIGHT <= my <= HEIGHT + 48:
+                    mobile_gameover_left = True
+                elif 80 <= mx <= 140 and HEIGHT <= my <= HEIGHT + 48:
+                    mobile_gameover_right = True
+
+            if pyxel.btnp(pyxel.KEY_UP) or pyxel.btnp(pyxel.KEY_DOWN) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_UP) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_DOWN) or pyxel.btnp(pyxel.KEY_LEFT) or pyxel.btnp(pyxel.KEY_RIGHT) or mobile_gameover_left or mobile_gameover_right:
                 pyxel.play(3, 7)
                 self.gameover_choice = 1 - self.gameover_choice
 
-            if pyxel.btnp(pyxel.KEY_A) or pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(self.BTN_ACT_A) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_X) or (self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT)):
+            if pyxel.btnp(pyxel.KEY_A) or pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(self.BTN_ACT_A) or pyxel.btnp(self.BTN_START) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_X) or (self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT)):
                 pyxel.play(3, 7)
                 if self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
                     mx = pyxel.mouse_x
@@ -641,14 +660,6 @@ class App:
             if pyxel.btn(pyxel.KEY_A) or pyxel.btn(pyxel.KEY_SPACE) or pyxel.btn(self.BTN_ACT_A) or pyxel.btn(pyxel.GAMEPAD1_BUTTON_X): 
                 shoot_trigger = True
                 
-            if self.is_mobile and pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
-                mx, my = pyxel.mouse_x, pyxel.mouse_y
-                if my >= HEIGHT:
-                    if 10 <= mx <= 40 and 152 <= my <= 184: turn_left = True
-                    if 80 <= mx <= 110 and 152 <= my <= 184: turn_right = True
-                    if 45 <= mx <= 75 and 148 <= my <= 164: move_forward = True
-                    if 45 <= mx <= 75 and 170 <= my <= 186: move_backward = True
-                    if WIDTH - 70 <= mx <= WIDTH - 40 and 152 <= my <= 184: shoot_trigger = True
 
         if turn_left: self.pa -= ROT_SPEED
         if turn_right: self.pa += ROT_SPEED
@@ -1023,7 +1034,7 @@ class App:
             if self.is_mobile:
                 self._jtext(WIDTH // 2 - self._text_width("＞ 画面を押して開始 ＜") // 2, 90, "＞ 画面を押して開始 ＜", 10)
             else:
-                self._jtext(WIDTH // 2 - self._text_width("＞ スペース/Aキーで開始 ＜") // 2, 90, "＞ スペース/Aキーで開始 ＜", 10)
+                self._jtext(WIDTH // 2 - self._text_width("＞スペース/A/スタートで開始＜") // 2, 90, "＞スペース/A/スタートで開始＜", 10)
         self._jtext(WIDTH // 2 - self._text_width("制作著作 T.K/M.T") // 2, 117, "制作著作 T.K/M.T", 7)
         self._jtext(WIDTH // 2 - self._text_width("Mirai Work Co., Ltd. 2026") // 2, 132, "Mirai Work Co., Ltd. 2026", 11)
 
@@ -1043,7 +1054,7 @@ class App:
         self._jtext(32 + p_offset, 74, "全5ウェーブを突破し、", 7)
         self._jtext(32 + p_offset, 90, "最高司令官を撃破して生還せよ。", 7)
 
-        self._jtext_center(114, "スペース/Aキーで次へ", 11)
+        self._jtext_center(114, "スペース/A/スタートで次へ", 11)
 
     def draw_tutorial(self):
         pyxel.cls(0)
@@ -1070,7 +1081,7 @@ class App:
         pyxel.rect(ix + 2, iy + 3, 4, 5, 11)
         pyxel.rect(ix + 3, iy + 1, 2, 2, 11)
 
-        self._jtext_center(112, "スペース/Aキーで開始", 11)
+        self._jtext_center(112, "スペース/A/スタートで開始", 11)
 
     def draw_gameover(self):
         pyxel.cls(0)
@@ -1116,7 +1127,7 @@ class App:
             if self.is_mobile:
                 self._jtext(WIDTH // 2 - self._text_width("左右で選択/画面タップで決定") // 2, 102 + drop_y, "左右で選択/画面タップで決定", 11)
             else:
-                self._jtext(WIDTH // 2 - self._text_width("左右で選択/スペース・Aで決定") // 2, 102 + drop_y, "左右で選択/スペース・Aで決定", 11)
+                self._jtext(WIDTH // 2 - self._text_width("左右選択/スペース/A/スタート決定") // 2, 102 + drop_y, "左右選択/スペース/A/スタート決定", 11)
 
     def draw_clear(self):
         t = self.clear_timer
@@ -1841,11 +1852,6 @@ class App:
         alive = sum(1 for en in self.enemies if en["alive"])
         self._jtext(90, 26, f"敵残数 {alive:02d}", 8 if alive else 11)
 
-        if self.ai_mode:
-            pyxel.rect(174, 5, 73, 16, 2)
-            pyxel.rectb(174, 5, 73, 16, 10)
-            self._jtext(182, 8, "自動操縦", 10)
-
         if self.invincible:
             pyxel.rect(174, 23, 73, 15, 3)
             pyxel.rectb(174, 23, 73, 15, 7)
@@ -1940,34 +1946,15 @@ class App:
                            my_y + int(math.sin(ang) * ln),
                            random.choice([10, 9]))
 
+        if not getattr(self, "is_mobile", False) and self.ai_mode:
+            pyxel.rect(WIDTH - 65, 5, 60, 16, 12)
+            pyxel.rectb(WIDTH - 65, 5, 60, 16, 7)
+            self._jtext(WIDTH - 59, 8, "自動操作", 0)
+
         if getattr(self, "is_mobile", False):
-            pad_col, pad_border = 1, 5
-            
-            pyxel.rect(25, HEIGHT - 65, 20, 20, pad_col)
-            pyxel.rectb(25, HEIGHT - 65, 20, 20, pad_border)
-            pyxel.tri(35, HEIGHT - 61, 29, HEIGHT - 51, 41, HEIGHT - 51, 7)
-            
-            pyxel.rect(25, HEIGHT - 25, 20, 20, pad_col)
-            pyxel.rectb(25, HEIGHT - 25, 20, 20, pad_border)
-            pyxel.tri(35, HEIGHT - 9, 29, HEIGHT - 19, 41, HEIGHT - 19, 7)
-            
-            pyxel.rect(5, HEIGHT - 45, 20, 20, pad_col)
-            pyxel.rectb(5, HEIGHT - 45, 20, 20, pad_border)
-            pyxel.tri(9, HEIGHT - 35, 19, HEIGHT - 41, 19, HEIGHT - 29, 7)
-            
-            pyxel.rect(45, HEIGHT - 45, 20, 20, pad_col)
-            pyxel.rectb(45, HEIGHT - 45, 20, 20, pad_border)
-            pyxel.tri(61, HEIGHT - 35, 51, HEIGHT - 41, 51, HEIGHT - 29, 7)
-            
-            pyxel.circ(WIDTH - 30, HEIGHT - 35, 20, pad_col)
-            pyxel.circb(WIDTH - 30, HEIGHT - 35, 20, 8)
-            pyxel.circb(WIDTH - 30, HEIGHT - 35, 18, 8)
-            self._jtext(WIDTH - 42, HEIGHT - 40, "射撃", 7)
-            
-            auto_bg = 12 if self.ai_mode else pad_col
-            auto_fg = 0 if self.ai_mode else 7
-            pyxel.rect(WIDTH - 45, 5, 40, 16, auto_bg)
-            pyxel.rectb(WIDTH - 45, 5, 40, 16, 12)
-            self._jtext(WIDTH - 36, 8, "自動", auto_fg)
+            if self.ai_mode:
+                pyxel.rect(WIDTH - 65, HEIGHT + 8, 60, 28, 12)
+                pyxel.rectb(WIDTH - 65, HEIGHT + 8, 60, 28, 7)
+                self._jtext(WIDTH - 59, HEIGHT + 17, "自動操作", 0)
 
 App()
