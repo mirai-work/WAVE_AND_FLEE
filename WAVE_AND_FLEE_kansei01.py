@@ -211,6 +211,7 @@ class App:
         self.state = "TITLE"
         self.prev_state = "TITLE"
         self.state_timer = 0
+        self.mobile_wait_release = False
         
         self.max_wave = MAX_WAVES 
         self.wave = 1
@@ -447,6 +448,8 @@ class App:
             if pyxel.btnp(pyxel.KEY_A) or pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(self.BTN_ACT_A) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_X) or (self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT)):
                 pyxel.play(3, 7) 
                 self.state = "MISSION"
+                if self.is_mobile:
+                    self.mobile_wait_release = True
 
         elif self.state == "ATTRACT_DEMO":
             # ユーザー入力があったらタイトルへ戻る
@@ -508,7 +511,10 @@ class App:
                 self.init_wave()
 
         elif self.state == "MISSION":
-            if pyxel.btnp(pyxel.KEY_A) or pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(self.BTN_ACT_A) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_X) or (self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT)):
+            if self.is_mobile and self.mobile_wait_release:
+                if not pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
+                    self.mobile_wait_release = False
+            elif pyxel.btnp(pyxel.KEY_A) or pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(self.BTN_ACT_A) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_X) or (self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT)):
                 pyxel.play(3, 7) 
                 self.state = "TUTORIAL"
 
@@ -929,8 +935,6 @@ class App:
 
         pyxel.camera(0, 0)
 
-        if self.is_mobile:
-            self.draw_mobile_controls()
 
     def _text_width(self, s):
         if hasattr(self, "font") and self.font:
