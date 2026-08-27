@@ -463,7 +463,7 @@ class App:
                     self.mobile_wait_release = False
                     return
 
-                if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+                if pyxel.btnp(self.BTN_START):
                     pyxel.play(3, 7)
                     self.state = "MISSION"
                     return
@@ -1045,7 +1045,7 @@ class App:
         
         if t % 60 < 42:
             if self.is_mobile:
-                self._jtext(WIDTH // 2 - self._text_width("＞ 画面を押して開始 ＜") // 2, 90, "＞ 画面を押して開始 ＜", 10)
+                self._jtext(WIDTH // 2 - self._text_width("＞ スタートボタンで開始 ＜") // 2, 90, "＞ スタートボタンで開始 ＜", 10)
             else:
                 self._jtext(WIDTH // 2 - self._text_width("＞スペース/A/スタートで開始＜") // 2, 90, "＞スペース/A/スタートで開始＜", 10)
         self._jtext(WIDTH // 2 - self._text_width("制作著作 T.K/M.T") // 2, 117, "制作著作 T.K/M.T", 7)
