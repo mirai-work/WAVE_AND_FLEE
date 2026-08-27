@@ -103,7 +103,7 @@ MAPS = [
         "111111111111111111111111",
         "100000000010010000000001",
         "101111011010010110111101",
-        "101000010000000010000101",
+        "100000010000000010000101",
         "101011010111110101100101",
         "100011000001000000110001",
         "111011111001001111110111",
@@ -205,8 +205,8 @@ class App:
         if self.is_mobile:
             pyxel.mouse(True)
             
-        self.BTN_ACT_A = pyxel.GAMEPAD1_BUTTON_Y
-        self.BTN_ACT_C = pyxel.GAMEPAD1_BUTTON_BACK
+        self.BTN_ACT_A = pyxel.GAMEPAD1_BUTTON_A
+        self.BTN_ACT_C = pyxel.GAMEPAD1_BUTTON_Y
         self.BTN_START = pyxel.GAMEPAD1_BUTTON_START
 
         self.state = "TITLE"
@@ -586,11 +586,20 @@ class App:
                 self.invincible = False
                 return
 
-            if pyxel.btnp(pyxel.KEY_UP) or pyxel.btnp(pyxel.KEY_DOWN) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_UP) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_DOWN) or pyxel.btnp(pyxel.KEY_LEFT) or pyxel.btnp(pyxel.KEY_RIGHT):
+            if (
+                pyxel.btnp(pyxel.KEY_UP) or pyxel.btnp(pyxel.KEY_DOWN) or pyxel.btnp(pyxel.KEY_LEFT) or pyxel.btnp(pyxel.KEY_RIGHT) or
+                pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_UP) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_DOWN) or
+                pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_LEFT) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_RIGHT)
+            ):
                 pyxel.play(3, 7)
                 self.gameover_choice = 1 - self.gameover_choice
 
-            if pyxel.btnp(pyxel.KEY_A) or pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(self.BTN_ACT_A) or pyxel.btnp(self.BTN_START) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_X) or (self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT)):
+            if (
+                pyxel.btnp(pyxel.KEY_A) or pyxel.btnp(pyxel.KEY_SPACE) or
+                pyxel.btnp(self.BTN_ACT_A) or pyxel.btnp(self.BTN_START) or
+                pyxel.btnp(pyxel.GAMEPAD1_BUTTON_X) or
+                (self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT))
+            ):
                 pyxel.play(3, 7)
                 if self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
                     mx = pyxel.mouse_x
@@ -1100,7 +1109,7 @@ class App:
         self._jtext(32 + p_offset, 34, "上・下キー：移動", 7)
         self._jtext(32 + p_offset, 48, "左右キー：方向転換", 7)
         self._jtext(32 + p_offset, 62, "スペース/Aキー：射撃", 7)
-        self._jtext(32 + p_offset, 76, "セレクト/CTRLキー：自動操縦切替", 7)
+        self._jtext(32 + p_offset, 76, "CTRLキー/セレクト：自動操縦切替", 7)
         
         self._jtext(44 + p_offset, 92, "ポーション：近づくと体力25回復", 11)
         ix = 32 + p_offset
@@ -1154,7 +1163,7 @@ class App:
 
         if t % 60 < 40:
             if self.is_mobile:
-                self._jtext(WIDTH // 2 - self._text_width("左右で選択/画面タップで決定") // 2, 102 + drop_y, "左右で選択/画面タップで決定", 11)
+                self._jtext(WIDTH // 2 - self._text_width("左右で選択/スタートで決定") // 2, 102 + drop_y, "左右で選択/スタートで決定", 11)
             else:
                 self._jtext(WIDTH // 2 - self._text_width("左右選択/スペース/A/スタート決定") // 2, 102 + drop_y, "左右選択/スペース/A/スタート決定", 11)
 
@@ -1778,34 +1787,51 @@ class App:
             yy = HEIGHT // 2 - h // 4 + enemy_bob
             
             pyxel.rect(sx - w // 2 - 1, yy - h // 2 - 1, w + 2, h + 2, 0)
-            pyxel.rect(sx - w // 2, yy + h // 2 - 4, w, 4, 0)
             pyxel.rect(sx - w // 2, yy - h // 2, w, h, 8)
             pyxel.rectb(sx - w // 2, yy - h // 2, w, h, 2)
             
+            inner_w, inner_h = w * 2 // 3, h * 2 // 3
+            pyxel.rect(sx - inner_w // 2, yy - inner_h // 2, inner_w, inner_h, 2)
+            pyxel.rectb(sx - inner_w // 2, yy - inner_h // 2, inner_w, inner_h, 10)
+            
             if h > 8:
-                pyxel.circ(sx, yy, max(2, w // 4), 10)
-                pyxel.circ(sx, yy, max(1, w // 8), 7)
+                pyxel.circ(sx, yy - h // 6, max(2, w // 6), 10)
+                pyxel.circ(sx, yy - h // 6, max(1, w // 12), 7)
 
             hp_ratio = max(0, obj_data["hp"]) / obj_data["max_hp"]
             pyxel.rect(sx - w // 2, yy - h // 2 - 6, w, 3, 1)
             pyxel.rect(sx - w // 2, yy - h // 2 - 6, max(1, int(w * hp_ratio)), 3, 8)
 
         elif sp_type == "brute":
-            w, h = max(8, int(size * 0.9)), max(10, int(size * 1.1))
+            w, h = max(10, int(size * 1.2)), max(12, int(size * 1.4))
             yy = HEIGHT // 2 - h // 4 + enemy_bob
+            
+            pyxel.rect(sx - w // 2 - 1, yy - h // 2 - 1, w + 2, h + 2, 0)
             pyxel.rect(sx - w // 2, yy - h // 2, w, h, 2)
             pyxel.rectb(sx - w // 2, yy - h // 2, w, h, 4)
-            pyxel.rect(sx - w // 4, yy - h // 4, w // 2, h // 2, 3)
+            
+            if h > 8:
+                eye_y = yy - h // 4
+                pyxel.rect(sx - w // 3, eye_y, w * 2 // 3, max(2, h // 6), 3)
+                pyxel.rect(sx - w // 6, eye_y, max(2, w // 3), max(2, h // 6), 10)
 
         elif sp_type == "soldier":
-            w, h = max(6, int(size * 0.7)), max(8, int(size * 0.9))
+            w, h = max(6, int(size * 0.8)), max(10, int(size * 1.1))
             yy = HEIGHT // 2 - h // 4 + enemy_bob
+            
+            pyxel.rect(sx - w // 2 - 1, yy - h // 2 - 1, w + 2, h + 2, 0)
             pyxel.rect(sx - w // 2, yy - h // 2, w, h, 3)
-            pyxel.rect(sx - w // 4, yy - h // 4, w // 2, h // 4, 4)
+            pyxel.rectb(sx - w // 2, yy - h // 2, w, h, 4)
+            
+            if h > 6:
+                eye_y = yy - h // 3
+                pyxel.line(sx - w // 3, eye_y, sx + w // 3, eye_y, 11)
 
         elif sp_type == "drone":
-            r = max(2, size // 6)
-            yy = HEIGHT // 2 + enemy_bob
+            r = max(3, size // 5)
+            yy = HEIGHT // 2 - r + enemy_bob
+            
+            pyxel.circ(sx, yy, r + 1, 0)
             pyxel.circ(sx, yy, r, 13)
             pyxel.circb(sx, yy, r, 12)
             pyxel.circ(sx, yy, max(1, r // 2), 10)
