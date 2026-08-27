@@ -1920,7 +1920,7 @@ class App:
         sw = self._text_width(score_str)
         self._draw_shadow_text(WIDTH - sw - 4, 4, score_str, 7)
         if self.high_score > 0 and self.score >= self.high_score:
-            self._jtext(WIDTH - sw - 4, 14, "最高点!", 10)
+            self._jtext(WIDTH - sw - 4, 14, "最高得点!", 10)
 
         hp_col = 8 if self.hp < 30 else (10 if self.hp < 60 else 11)
         self._jtext(7, 3, "体力", 7)
