@@ -1341,7 +1341,7 @@ class App:
                     
                     if pyxel.frame_count % 60 < 30:
                         if self.is_mobile:
-                            self._jtext_center(HEIGHT - 20, "〉画面タップでタイトルへ〈", 5)
+                            self._jtext_center(HEIGHT - 20, "〉スタートボタンでタイトルへ〈", 5)
                         else:
                             self._jtext_center(HEIGHT - 20, "〉スペース/A/スタートでタイトルへ〈", 5)
 
