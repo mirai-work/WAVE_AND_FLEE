@@ -246,65 +246,74 @@ class App:
         
         self.gameover_choice = 0  # 0: はい, 1: いいえ
         
+        # --- スコア管理の追加 ---
+        self.score = 0
+        self.high_score = 0
+        
         pyxel.run(self.update, self.draw)
 
     def init_sounds(self):
-        pyxel.sounds[1].set("a2g2c1", "n", "7", "f", 4)
-        pyxel.sounds[2].set("c1c0", "s", "7", "v", 6)
-        pyxel.sounds[3].set("c3e3g3c4", "t", "7", "v", 6)
-        pyxel.sounds[4].set("g1f1e1d1c1", "n", "7", "f", 8)
-        pyxel.sounds[5].set("c2e2g2c3e3g3c4", "s", "7", "f", 4)
-        pyxel.sounds[6].set("c1c0g2c0", "s", "7654", "f", 15)
-        pyxel.sounds[7].set("c3g3c4", "p", "7", "v", 8)
-        pyxel.sounds[8].set("e3g3c4", "t", "7", "v", 8)
-        
-        # ボス撃破時の専用ダウンSE (サウンド9)
-        pyxel.sounds[9].set("c2b1a1g1f1e1d1c1", "s", "7654", "f", 18)
+        # --- SE (FFのようなファンタジーRPG風に、ノイズを減らしてクリアに) ---
+        pyxel.sounds[1].set("c4g4", "p", "6", "v", 5)  # 射撃 (魔法風)
+        pyxel.sounds[2].set("c2c1", "n", "7", "f", 8)  # ダメージ
+        pyxel.sounds[3].set("c3e3g3c4", "p", "4", "v", 8) # 回復 (クリスタル風)
+        pyxel.sounds[4].set("c1g0c0", "n", "7", "f", 12) # 爆発
+        pyxel.sounds[5].set("c3e3g3c4", "t", "5", "v", 15) # ウェーブクリア (ファンファーレ)
+        pyxel.sounds[6].set("c2g1", "n", "6", "f", 5) # 壁ヒット
+        pyxel.sounds[7].set("e3c4", "p", "5", "v", 5) # UI決定
+        pyxel.sounds[8].set("g2c2", "p", "6", "f", 5) # 敵ヒット
+        pyxel.sounds[9].set("c3g2c2g1c1", "s", "7", "f", 30) # ボス撃破 (ドラマチック)
 
-        pyxel.sounds[20].set("c3e3g3c4 e3g3c4e4", "t", "6", "v", 12)
-        pyxel.sounds[21].set("a2c3e3g3 f3a3c4e4", "t", "6", "v", 12)
-        pyxel.sounds[22].set("c4g3e3g3 c4g3e3g3", "p", "4", "n", 12)
-        pyxel.sounds[23].set("c1c1r c1 f1f1r f1", "s", "7", "f", 12)
-        pyxel.musics[0].set([20, 21], [22, 22], [23, 23])
+        # --- BGM (SFC・FF風: トライアングル波をベース、パルス波でメロディ) ---
+        # 0: Title (壮大なプレリュード風アルペジオ)
+        pyxel.sounds[20].set("c2e2g2c3e3g3c4g3e3c3g2e2", "p", "5", "v", 24)
+        pyxel.sounds[21].set("c2e2g2c3e3g3c4g3e3c3g2e2", "p", "5", "v", 24)
+        pyxel.sounds[22].set("c1", "t", "7", "n", 24)
+        pyxel.sounds[23].set("c2", "s", "6", "f", 24)
+        pyxel.musics[0].set([20], [21], [22], [23])
 
+        # 1-5: Wave BGM (マイナーキーで統一し、不協和音を排除したダンジョン風)
         bgm_data = [
-            {"m": ["e2e2b1e2 g2e2d2e2", "c2c2g1c2 e2c2b1c2"], "a": "e3b2g2b2 e3b2g2b2", "b": "e1e1r e1 c1c1r c1"},
-            {"m": ["c3c3g2c3 d#3c3a#2c3", "g2g2d2g2 a#2g2f2g2"], "a": "c4g3d#3g3 c4g3d#3g3", "b": "c2c2r c2 g1g1r g1"},
-            {"m": ["f2g2a2b2 c3d3f3g3", "a2b2c3d3 f3g3a3b3"], "a": "f4c#4a3c#4 f4c#4a3c#4", "b": "f1a1c2a1 d#1g1b1g1"},
-            {"m": ["d3f#3a3d4 c4a3f#3d3", "b2d3f#3b3 a3f#3d3b2"], "a": "d4a3f#3a3 d4a3f#3a3", "b": "d2r d2r b1r b1r"},
-            {"m": ["a2c3e3a3 b3g3e3d3", "f2a2c3f3 g3e3c3b2"], "a": "a3e3c3e3 a3e3c3e3", "b": "a1a1a1a1 f1f1f1f1"}
+            # Wave 1
+            {"m": ["c3d#3g3c4 g3d#3c3g2", "c3d#3g3c4 g3d#3c3g2"], "a": "c2g2c3g2 c2g2c3g2", "b": "c1c1r c1 c1c1r c1"},
+            # Wave 2
+            {"m": ["f3g#3c4f4 c4g#3f3c3", "f3g#3c4f4 c4g#3f3c3"], "a": "f2c3f3c3 f2c3f3c3", "b": "f1f1r f1 f1f1r f1"},
+            # Wave 3
+            {"m": ["g3a#3d4g4 d4a#3g3d3", "g3a#3d4g4 d4a#3g3d3"], "a": "g2d3g3d3 g2d3g3d3", "b": "g1g1r g1 g1g1r g1"},
+            # Wave 4
+            {"m": ["d#3g3a#3d#4 a#3g3d#3a#2", "d#3g3a#3d#4 a#3g3d#3a#2"], "a": "d#2a#2d#3a#2 d#2a#2d#3a#2", "b": "d#1d#1r d#1 d#1d#1r d#1"},
+            # Wave 5
+            {"m": ["c4c4g3c4 d#4c4a#3c4", "g3g3d3g3 a#3g3f3g3"], "a": "c3g3c4g3 c3g3c4g3", "b": "c2c2r c2 g1g1r g1"}
         ]
         
         for w in range(5):
             snd_base = 24 + w * 4
-            pyxel.sounds[snd_base].set(bgm_data[w]["m"][0], "t", "6", "v", 12)
-            pyxel.sounds[snd_base+1].set(bgm_data[w]["m"][1], "t", "6", "v", 12)
-            pyxel.sounds[snd_base+2].set(bgm_data[w]["a"], "p", "4", "n", 12)
-            pyxel.sounds[snd_base+3].set(bgm_data[w]["b"], "s", "7", "f", 12)
-            
-            pyxel.musics[w+1].set(
-                [snd_base, snd_base+1], 
-                [snd_base+2, snd_base+2], 
-                [snd_base+3, snd_base+3]
-            )
+            pyxel.sounds[snd_base].set(bgm_data[w]["m"][0], "p", "6", "v", 16)
+            pyxel.sounds[snd_base+1].set(bgm_data[w]["m"][1], "p", "6", "v", 16)
+            pyxel.sounds[snd_base+2].set(bgm_data[w]["a"], "t", "5", "n", 16)
+            pyxel.sounds[snd_base+3].set(bgm_data[w]["b"], "n", "4", "f", 16)
+            pyxel.musics[w+1].set([snd_base, snd_base+1], [snd_base+2, snd_base+2], [snd_base+3, snd_base+3])
 
-        pyxel.sounds[44].set("c3e3g3c4 e4g4c4g4", "t", "6", "v", 12)
-        pyxel.sounds[45].set("a3c4e4g4 f4a4c4a4", "t", "6", "v", 12)
-        pyxel.sounds[46].set("c4g3e3g3 c4g3e3g3", "p", "4", "n", 12)
-        pyxel.sounds[47].set("c1c1r c1 f1f1r f1", "s", "7", "f", 12)
+        # 6: クリア (勝利のファンファーレ風)
+        pyxel.sounds[44].set("c2e2g2c3 e3g3c4g3", "p", "6", "v", 16)
+        pyxel.sounds[45].set("c3e3g3c4 g3e3c3g2", "p", "6", "v", 16)
+        pyxel.sounds[46].set("c2g2c3g2 c2g2c3g2", "t", "5", "n", 16)
+        pyxel.sounds[47].set("c1", "s", "4", "f", 16)
         pyxel.musics[6].set([44, 45], [46, 46], [47, 47])
 
-        pyxel.sounds[48].set("g3e3d3c3 b2a2g2f#2", "t", "6", "v", 10)
-        pyxel.sounds[49].set("e2d2c2b1 a1g1f#1e1", "t", "6", "v", 10)
-        pyxel.sounds[50].set("e3b2g2b2 e3b2g2b2", "p", "4", "n", 10)
-        pyxel.sounds[51].set("e1r e1r e1r e1r", "s", "7", "f", 10)
+        # 7: ゲームオーバー (悲壮感あるメロディ)
+        pyxel.sounds[48].set("g3d#3c3g2", "t", "5", "v", 32)
+        pyxel.sounds[49].set("d#3c3g2c2", "t", "5", "v", 32)
+        pyxel.sounds[50].set("c2", "s", "4", "n", 32)
+        pyxel.sounds[51].set("c1", "n", "3", "f", 32)
         pyxel.musics[7].set([48, 49], [50, 50], [51, 51])
 
-        # 最終決戦（最高司令官出現）用のサウンド定義（サウンド52〜55）
-        pyxel.sounds[52].set("g3g3c4d4 e4f4g4a4", "t", "6", "v", 15)
-        pyxel.sounds[53].set("c3d3e3f3 g3a3b3c4", "t", "6", "v", 15)
-        pyxel.sounds[54].set("c4g3c3g3 c4g3c3g3", "p", "4", "n", 15)
-        pyxel.sounds[55].set("c1r c1r c1r c1r", "s", "7", "f", 15)
+        # 5: 最終決戦（最高司令官出現、緊迫感あるボステーマ）
+        pyxel.sounds[52].set("c4c4c4c4 d#4d#4d#4d#4 f4f4f4f4 g4g4g4g4", "p", "6", "v", 8)
+        pyxel.sounds[53].set("c3c3c3c3 d#3d#3d#3d#3 f3f3f3f3 g3g3g3g3", "p", "6", "v", 8)
+        pyxel.sounds[54].set("c2c2c2c2", "t", "5", "n", 8)
+        pyxel.sounds[55].set("c1c1c1c1", "n", "6", "f", 8)
+        pyxel.musics[5].set([52, 53], [54, 54], [55, 55])
 
     def load_map(self):
         m_data = MAPS[min(self.wave - 1, len(MAPS) - 1)]
@@ -441,7 +450,6 @@ class App:
                     else:
                         self.cheat_index = 1 if key == self.cheat_sequence[0] else 0
 
-            # 15秒（900フレーム）放置でデモ画面（ATTRACT_DEMO）へ移行
             if self.state_timer >= 900:
                 self.state = "ATTRACT_DEMO"
                 self.state_timer = 0
@@ -452,14 +460,12 @@ class App:
                 return
 
             if self.is_mobile:
-                # 起動時・タイトル表示直後の誤タップ判定を無視するガード処理（20フレーム = 約0.3秒）
                 if self.state_timer < 20:
                     return
 
                 if self.mobile_wait_release:
                     if pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
                         return
-
                     self.mobile_wait_release = False
                     return
 
@@ -467,9 +473,7 @@ class App:
                     pyxel.play(3, 7)
                     self.state = "MISSION"
                     return
-
                 return
-            # PC・ゲームパッド
             if (
                 pyxel.btnp(pyxel.KEY_A)
                 or pyxel.btnp(pyxel.KEY_SPACE)
@@ -481,7 +485,6 @@ class App:
                 self.state = "MISSION"
 
         elif self.state == "ATTRACT_DEMO":
-            # ユーザー入力があったらタイトルへ戻る
             any_input = (
                 pyxel.btnp(pyxel.KEY_A) or pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(pyxel.KEY_C) or
                 pyxel.btnp(pyxel.KEY_UP) or pyxel.btnp(pyxel.KEY_DOWN) or pyxel.btnp(pyxel.KEY_LEFT) or pyxel.btnp(pyxel.KEY_RIGHT) or
@@ -505,7 +508,6 @@ class App:
                 pyxel.playm(0, loop=True)
                 return
 
-            # デモプレイ：40秒（2400フレーム）。1〜4面を交互に繰り返す（各面10秒 = 600フレーム）
             target_wave = (self.state_timer // 600) % 4 + 1
             if self.wave != target_wave:
                 self.wave = target_wave
@@ -518,13 +520,11 @@ class App:
 
             self.update_play()
 
-            # 40秒経過したらチュートリアル（ATTRACT_TUTORIAL）へ
             if self.state_timer >= 2400:
                 self.state = "ATTRACT_TUTORIAL"
                 self.state_timer = 0
 
         elif self.state == "ATTRACT_TUTORIAL":
-            # ユーザー入力があったらタイトルへ戻る
             any_input = (
                 pyxel.btnp(pyxel.KEY_A) or pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(pyxel.KEY_C) or
                 pyxel.btnp(pyxel.KEY_UP) or pyxel.btnp(pyxel.KEY_DOWN) or pyxel.btnp(pyxel.KEY_LEFT) or pyxel.btnp(pyxel.KEY_RIGHT) or
@@ -539,7 +539,6 @@ class App:
                 pyxel.playm(0, loop=True)
                 return
 
-            # チュートリアル：10秒（600フレーム）流れたらデモプレイに戻る（ループ）
             if self.state_timer >= 600:
                 self.state = "ATTRACT_DEMO"
                 self.state_timer = 0
@@ -561,6 +560,7 @@ class App:
                 pyxel.play(3, 7) 
                 self.state = "PLAY"
                 self.wave = 1
+                self.score = 0  # スコアをリセット
                 self.init_wave()
                 
         elif self.state == "PLAY" or self.state == "BOSS_SPAWN":
@@ -602,6 +602,7 @@ class App:
                 if self.gameover_choice == 0:
                     # はい（コンティニュー）
                     self.hp = 100
+                    self.score = 0  # スコアをリセット
                     self.init_wave()
                     self.state = "PLAY"
                 else:
@@ -613,9 +614,19 @@ class App:
             self.clear_timer += 1
             self.shake = 0
 
+            # エンドロール終了後(2620経過後)にスタートボタン、Aボタン、スペースボタンでタイトルへ戻る
             if self.clear_timer > 2620:
-                self.state = "TITLE"
-                self.invincible = False
+                if (
+                    pyxel.btnp(pyxel.KEY_A)
+                    or pyxel.btnp(pyxel.KEY_SPACE)
+                    or pyxel.btnp(self.BTN_ACT_A)
+                    or pyxel.btnp(self.BTN_START)
+                    or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_X)
+                    or (self.is_mobile and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT))
+                ):
+                    self.state = "TITLE"
+                    self.invincible = False
+                    self.clear_timer = 0
 
     def update_boss_spawn(self):
         self.boss_spawn_timer += 1
@@ -828,6 +839,9 @@ class App:
                             if self.wave == self.max_wave and en["type"] == "final_boss":
                                 en["hp"] = 0
                                 if self.state != "BOSS_DEATH":
+                                     # スコア加算
+                                    self.score += 50000
+                                    self.high_score = max(self.score, self.high_score)
                                     self.state = "BOSS_DEATH"
                                     self.boss_death_timer = 0
                                     self.boss_ref = en
@@ -835,6 +849,9 @@ class App:
                                     pyxel.play(3, 9)
                             else:
                                 en["alive"] = False
+                                 # スコア加算
+                                points = {"brute": 300, "soldier": 100, "drone": 50}.get(en["type"], 1000)
+                                self.score += points
                                 self.add_explosion(en["x"], en["y"], [9, 10, 8, 5, 1], 1.8)
                                 self.add_particles(en["x"], en["y"], 35, [9, 8, 5, 1, 0])
                                 
@@ -864,6 +881,7 @@ class App:
                 self.hp = 100
                 self.init_wave()
             else:
+                self.high_score = max(self.score, self.high_score)
                 self.state = "GAMEOVER"
                 return
             
@@ -897,7 +915,6 @@ class App:
                 else:
                     self.init_wave()
 
-        # デモモード中で敵全滅またはウェーブ進行時のケア
         if self.state == "ATTRACT_DEMO" and len(self.enemies) > 0 and not any(en["alive"] for en in self.enemies):
             self.init_wave()
 
@@ -958,7 +975,6 @@ class App:
         elif self.state == "CLEAR": self.draw_clear()
 
         pyxel.camera(0, 0)
-
 
     def _text_width(self, s):
         if hasattr(self, "font") and self.font:
@@ -1229,7 +1245,7 @@ class App:
             cy = (HEIGHT // 2 + panel_h // 2) - roll_progress * 0.4
             
             credits_data = [
-                ("ＭＩＳＳＩＯＮ ＣＯＭＰＬＥＴＥ", 10),
+                ("作戦任務完了。", 10),
                 ("おめでとうございます！", 7),
                 ("", 0),
                 ("監督・プログラム", 11),
@@ -1316,6 +1332,18 @@ class App:
                             
             if progress > 0.85:
                 pyxel.cls(0)
+                # --- エンドロール後のハイスコア表示 ---
+                if t > 2620:
+                    self._jtext_center(HEIGHT // 2 - 20, "今回の点数", 7)
+                    self._jtext_center(HEIGHT // 2 - 5, f"{self.score:06d}", 10)
+                    self._jtext_center(HEIGHT // 2 + 10, "最高点", 7)
+                    self._jtext_center(HEIGHT // 2 + 25, f"{self.high_score:06d}", 10)
+                    
+                    if pyxel.frame_count % 60 < 30:
+                        if self.is_mobile:
+                            self._jtext_center(HEIGHT - 20, "〉画面タップでタイトルへ〈", 5)
+                        else:
+                            self._jtext_center(HEIGHT - 20, "〉スペース/A/スタートでタイトルへ〈", 5)
 
     def draw_intro_graphic(self, index, x, y):
         if index == 0:  # 戦士
@@ -1755,70 +1783,47 @@ class App:
             pyxel.rectb(sx - w // 2, yy - h // 2, w, h, 2)
             
             if h > 8:
-                pyxel.line(sx - w // 2 + 2, yy - h // 2 + 2, sx + w // 2 - 2, yy - h // 2 + 2, 10)
-                pyxel.rect(sx - w // 4, yy - h // 4, w // 2, h // 2, 0)
-                eye = 10 if t % 10 < 5 else 7
-                pyxel.circ(sx, yy, max(2, w // 6), eye)
-            
+                pyxel.circ(sx, yy, max(2, w // 4), 10)
+                pyxel.circ(sx, yy, max(1, w // 8), 7)
+
             hp_ratio = max(0, obj_data["hp"]) / obj_data["max_hp"]
             pyxel.rect(sx - w // 2, yy - h // 2 - 6, w, 3, 1)
             pyxel.rect(sx - w // 2, yy - h // 2 - 6, max(1, int(w * hp_ratio)), 3, 8)
 
         elif sp_type == "brute":
-            w, h = max(6, size), max(8, int(size * 1.18))
+            w, h = max(8, int(size * 0.9)), max(10, int(size * 1.1))
             yy = HEIGHT // 2 - h // 4 + enemy_bob
-            pyxel.rect(sx - w // 2 - 1, yy - h // 2 - 1, w + 2, h + 2, 0)
-            pyxel.rect(sx - w // 2, yy + h // 2 - 3, w, 3, 0)
             pyxel.rect(sx - w // 2, yy - h // 2, w, h, 2)
             pyxel.rectb(sx - w // 2, yy - h // 2, w, h, 4)
-            pyxel.rect(sx - w // 3, yy - h // 2 + 2, max(2, w * 2 // 3), max(3, h // 3), 3)
-            pyxel.line(sx - w // 2 + 2, yy, sx + w // 2 - 2, yy, 1)
-            pyxel.line(sx - w // 3, yy + h // 4, sx + w // 3, yy + h // 4, 4)
-            eye = 8 if t % 12 < 8 else 10
-            pyxel.rect(sx - w // 4, yy - h // 4, max(2, w // 7), max(2, h // 10), eye)
-            pyxel.rect(sx + w // 4 - max(2, w // 7), yy - h // 4, max(2, w // 7), max(2, h // 10), eye)
-            hp_ratio = max(0, obj_data["hp"]) / obj_data["max_hp"]
-            pyxel.rect(sx - w // 2, yy - h // 2 - 5, w, 2, 1)
-            pyxel.rect(sx - w // 2, yy - h // 2 - 5, max(1, int(w * hp_ratio)), 2, 8)
+            pyxel.rect(sx - w // 4, yy - h // 4, w // 2, h // 2, 3)
 
         elif sp_type == "soldier":
-            w, h = max(5, size // 2), max(8, size)
-            yy = HEIGHT // 2 + enemy_bob
-            pyxel.rect(sx - w // 2 - 1, yy - h // 2 - 1, w + 2, h + 2, 0)
+            w, h = max(6, int(size * 0.7)), max(8, int(size * 0.9))
+            yy = HEIGHT // 2 - h // 4 + enemy_bob
             pyxel.rect(sx - w // 2, yy - h // 2, w, h, 3)
-            pyxel.rect(sx - w // 3, yy - h // 5, max(2, w * 2 // 3), max(3, h // 3), 4)
-            pyxel.rectb(sx - w // 3, yy - h // 5, max(2, w * 2 // 3), max(3, h // 3), 5)
-            pyxel.rect(sx - w // 2 + 1, yy - h // 3, max(2, w - 2), max(2, h // 8), 0)
-            pyxel.line(sx - w // 3, yy - h // 3, sx + w // 3, yy - h // 3, 11)
-            pyxel.rect(sx + w // 3, yy - 1, max(3, w // 2), max(2, h // 7), 1)
-            pyxel.rect(sx + w // 3, yy - 2, max(2, w // 3), 1, 7)
-            pyxel.line(sx - w // 4, yy + h // 3, sx - w // 4, yy + h // 2, 5)
-            pyxel.line(sx + w // 4, yy + h // 3, sx + w // 4, yy + h // 2, 5)
+            pyxel.rect(sx - w // 4, yy - h // 4, w // 2, h // 4, 4)
 
         elif sp_type == "drone":
-            w = max(6, int(size * 0.62))
-            yy = HEIGHT // 2 - size // 2 + enemy_bob
-            if t % 8 < 4:
-                pyxel.line(sx - w // 2, yy + w // 2, sx - w // 2 - 2, yy + w // 2 + 4, 7)
-                pyxel.line(sx + w // 2, yy + w // 2, sx + w // 2 + 2, yy + w // 2 + 4, 7)
-            pyxel.circ(sx, yy, w // 2 + 3, 0)
-            pyxel.circ(sx, yy, w // 2, 13)
-            pyxel.circb(sx, yy, w // 2, 12)
-            pyxel.line(sx - w // 2, yy, sx + w // 2, yy, 12)
-            pyxel.line(sx, yy - w // 2, sx, yy + w // 2, 12)
-            core = 7 if t % 10 < 5 else 10
-            pyxel.circ(sx, yy, max(2, w // 4), 1)
-            pyxel.circ(sx, yy, max(1, w // 5), core)
-            hp_ratio = max(0, obj_data["hp"]) / obj_data["max_hp"]
-            pyxel.rect(sx - w // 2, yy - w // 2 - 5, w, 2, 1)
-            pyxel.rect(sx - w // 2, yy - w // 2 - 5, max(1, int(w * hp_ratio)), 2, 10)
+            r = max(2, size // 6)
+            yy = HEIGHT // 2 + enemy_bob
+            pyxel.circ(sx, yy, r, 13)
+            pyxel.circb(sx, yy, r, 12)
+            pyxel.circ(sx, yy, max(1, r // 2), 10)
 
     def draw_ui(self):
         t = pyxel.frame_count
 
+        # 上部UIの背景ヘッダー領域を描画
         pyxel.rect(0, 0, WIDTH, 39, 0)
         pyxel.line(0, 38, WIDTH - 1, 38, 5)
         pyxel.line(0, 39, WIDTH - 1, 39, 1)
+
+        # --- スコア表示 (背景描画の後に移動) ---
+        score_str = f"点数:{self.score:06d}"
+        sw = self._text_width(score_str)
+        self._draw_shadow_text(WIDTH - sw - 4, 4, score_str, 7)
+        if self.high_score > 0 and self.score >= self.high_score:
+            self._jtext(WIDTH - sw - 4, 14, "最高点!", 10)
 
         hp_col = 8 if self.hp < 30 else (10 if self.hp < 60 else 11)
         self._jtext(7, 3, "体力", 7)
@@ -1930,6 +1935,7 @@ class App:
             pyxel.rect(115, 5, 60, 16, 12)
             pyxel.rectb(115, 5, 60, 16, 7)
             self._jtext(121, 8, "自動操縦", 0)
+            
 
-App()
-
+if __name__ == "__main__":
+    App()
