@@ -4,7 +4,7 @@ import random
 import os
 
 # --- 日本語フォントの設定 ---
-FONT_FILE = "umplus_j10r.bdf"
+FONT_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "umplus_j10r.bdf")
 
 # --- Constants ---
 WIDTH = 256
@@ -208,12 +208,10 @@ class App:
         self.BTN_ACT_A = pyxel.GAMEPAD1_BUTTON_A
         self.BTN_ACT_C = pyxel.GAMEPAD1_BUTTON_Y
         self.BTN_START = pyxel.GAMEPAD1_BUTTON_START
+        self.BTN_SELECT = pyxel.GAMEPAD1_BUTTON_BACK
 
         self.state = "TITLE"
         self.prev_state = None
-        self.state_timer = 0
-        self.mobile_wait_release = self.is_mobile
-        self.prev_state = "TITLE"
         self.state_timer = 0
         self.mobile_wait_release = self.is_mobile
         
@@ -314,6 +312,66 @@ class App:
         pyxel.sounds[54].set("c2c2c2c2", "t", "5", "n", 8)
         pyxel.sounds[55].set("c1c1c1c1", "n", "6", "f", 8)
         pyxel.musics[5].set([52, 53], [54, 54], [55, 55])
+
+    def init_sounds_safe(self):
+        """Pyxel 2.x向けの最小・安全なサウンドセット。"""
+        for i in range(64):
+            try:
+                pyxel.sounds[i].set("c3r", "p", "5", "n", 16)
+            except Exception:
+                pass
+
+        # 効果音
+        safe_sfx = {
+            1: ("c4g4", "p", "6", "v", 8),
+            2: ("c2c1", "n", "6", "f", 12),
+            3: ("c3e3g3c4", "p", "5", "v", 12),
+            4: ("c1g1c2", "n", "6", "f", 12),
+            5: ("c3e3g3c4", "t", "5", "v", 12),
+            6: ("c2g2", "n", "5", "f", 10),
+            7: ("e3c4", "p", "5", "v", 8),
+            8: ("g2c2", "p", "5", "f", 8),
+            9: ("c3g3c4", "s", "6", "f", 16),
+        }
+        for idx, data in safe_sfx.items():
+            try:
+                pyxel.sounds[idx].set(*data)
+            except Exception:
+                pass
+
+        # BGMは単純な4音構成にして、MMLパーサー依存を避ける。
+        bgm_notes = [
+            ("c3e3g3c4", "p"),
+            ("d3f3a3d4", "p"),
+            ("e3g3b3e4", "p"),
+            ("f3a3c4f4", "p"),
+            ("g3b3d4g4", "p"),
+            ("c4e4g4c4", "p"),
+            ("c3g3c4g3", "p"),
+            ("c2g2c3g2", "t"),
+        ]
+        for i, (notes, tone) in enumerate(bgm_notes):
+            try:
+                pyxel.sounds[20 + i].set(notes, tone, "5", "n", 16)
+            except Exception:
+                pass
+
+        # 0: タイトル、1-5: 各ウェーブ、6: CLEAR、7: GAMEOVER
+        music_defs = {
+            0: ([20], [21], [22], [23]),
+            1: ([20, 21], [24], [27], []),
+            2: ([21, 22], [25], [27], []),
+            3: ([22, 23], [26], [27], []),
+            4: ([23, 24], [20], [27], []),
+            5: ([24, 25], [21], [27], []),
+            6: ([25, 26], [22], [27], []),
+            7: ([26], [27], [27], []),
+        }
+        for idx, channels in music_defs.items():
+            try:
+                pyxel.musics[idx].set(*channels)
+            except Exception:
+                pass
 
     def load_map(self):
         m_data = MAPS[min(self.wave - 1, len(MAPS) - 1)]
@@ -567,8 +625,21 @@ class App:
             if self.state == "PLAY" and pyxel.play_pos(0) is None: 
                 pyxel.playm(self.wave, loop=True)
                 
-            if pyxel.btnp(pyxel.KEY_C) or pyxel.btnp(pyxel.KEY_CTRL) or pyxel.btnp(self.BTN_ACT_C):
-                pyxel.play(3, 7) 
+            # ========================================================
+            # 自動操縦切り替え
+            #   ・ゲームパッド SELECT/BACK
+            #   ・キーボード CTRL
+            # Cボタンは射撃用なので自動操縦切り替えには使わない。
+            # ========================================================
+            ctrl_pressed = False
+            try:
+                ctrl_pressed = pyxel.btnp(pyxel.KEY_CTRL)
+            except AttributeError:
+                # 古い/特殊なPyxel環境への安全対策
+                ctrl_pressed = False
+
+            if pyxel.btnp(self.BTN_SELECT) or ctrl_pressed:
+                pyxel.play(3, 7)
                 self.ai_mode = not self.ai_mode
                 
             self.update_play()
@@ -1066,15 +1137,17 @@ class App:
 
         panel_x_offset = int(ease * 250)
         self._panel(43 + panel_x_offset, 70, 170, 36, 0, 5, 12)
-        self._jtext_center(75, "戦闘サバイバルゲーム", 6)
+        self._jtext_center(73, "戦闘サバイバルゲーム", 6)
+        score_str = f"HIGH SCORE: {self.high_score:06d}"
+        self._jtext_center(87, score_str, 11)
         
         if t % 60 < 42:
             if self.is_mobile:
-                self._jtext(WIDTH // 2 - self._text_width("＞ スタートボタンで開始 ＜") // 2, 90, "＞ スタートボタンで開始 ＜", 10)
+                self._jtext(WIDTH // 2 - self._text_width("＞ スタートボタンで開始 ＜") // 2, 110, "＞ スタートボタンで開始 ＜", 10)
             else:
-                self._jtext(WIDTH // 2 - self._text_width("＞スペース/A/スタートで開始＜") // 2, 90, "＞スペース/A/スタートで開始＜", 10)
-        self._jtext(WIDTH // 2 - self._text_width("制作著作 T.K/M.T") // 2, 117, "制作著作 T.K/M.T", 7)
-        self._jtext(WIDTH // 2 - self._text_width("Mirai Work Co., Ltd. 2026") // 2, 132, "Mirai Work Co., Ltd. 2026", 11)
+                self._jtext(WIDTH // 2 - self._text_width("＞スペース/A/スタートで開始＜") // 2, 110, "＞スペース/A/スタートで開始＜", 10)
+        self._jtext(WIDTH // 2 - self._text_width("制作著作 T.K/M.T") // 2, 123, "制作著作 T.K/M.T", 7)
+        self._jtext(WIDTH // 2 - self._text_width("Mirai Work Co., Ltd. 2026") // 2, 133, "Mirai Work Co., Ltd. 2026", 11)
 
     def draw_mission(self):
         pyxel.cls(0)
@@ -1270,9 +1343,9 @@ class App:
                 ("M．Ｔ", 7),
                 ("", 0),
                 ("あなたと全プレイヤーへ", 11),
-                ("Ａ・ＲＩ・ＧＡ・ＴＯＵ！", 10),
+                ("Ａ・ＲＩ・ＧＡ・ＴＯU！", 10),
                 ("", 0),
-                ("制作・著作 Ｔ．Ｋ/Ｍ．Ｔ", 13),
+                ("制作・著作 Ｔ．Ｋ/M．T", 13),
                 ("Mirai Work Co., Ltd. 2026", 13)
             ]
 
@@ -1345,7 +1418,7 @@ class App:
                 if t > 2620:
                     self._jtext_center(HEIGHT // 2 - 20, "今回の点数", 7)
                     self._jtext_center(HEIGHT // 2 - 5, f"{self.score:06d}", 10)
-                    self._jtext_center(HEIGHT // 2 + 10, "最高点", 7)
+                    self._jtext_center(HEIGHT // 2 + 10, "最高得点", 7)
                     self._jtext_center(HEIGHT // 2 + 25, f"{self.high_score:06d}", 10)
                     
                     if pyxel.frame_count % 60 < 30:
@@ -1823,18 +1896,16 @@ class App:
             pyxel.rect(sx - w // 2, yy - h // 2, w, h, 3)
             pyxel.rectb(sx - w // 2, yy - h // 2, w, h, 4)
             
-            if h > 6:
-                eye_y = yy - h // 3
-                pyxel.line(sx - w // 3, eye_y, sx + w // 3, eye_y, 11)
+            if h > 8:
+                pyxel.rect(sx - max(1, w // 4), yy - h // 4, max(2, w // 2), max(2, h // 6), 11)
 
         elif sp_type == "drone":
-            r = max(3, size // 5)
-            yy = HEIGHT // 2 - r + enemy_bob
+            w, h = max(6, int(size * 0.7)), max(6, int(size * 0.7))
+            yy = HEIGHT // 2 - h // 4 + enemy_bob
             
-            pyxel.circ(sx, yy, r + 1, 0)
-            pyxel.circ(sx, yy, r, 13)
-            pyxel.circb(sx, yy, r, 12)
-            pyxel.circ(sx, yy, max(1, r // 2), 10)
+            pyxel.circ(sx, yy, max(2, w // 2), 13)
+            pyxel.circb(sx, yy, max(2, w // 2), 7)
+            pyxel.pset(sx, yy, 10)
 
     def draw_ui(self):
         t = pyxel.frame_count
